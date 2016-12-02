@@ -5,6 +5,9 @@ from __future__ import print_function
 import re, sys, time
 from itertools import count
 from collections import OrderedDict, namedtuple
+import chess
+import random
+
 
 # The table size is the maximum number of elements in the transposition table.
 TABLE_SIZE = 1e8
@@ -438,29 +441,52 @@ def render(i):
 
 def print_pos(pos):
     print()
-    uni_pieces = {'R':'♜', 'N':'♞', 'B':'♝', 'Q':'♛', 'K':'♚', 'P':'♟',
-                  'r':'♖', 'n':'♘', 'b':'♗', 'q':'♕', 'k':'♔', 'p':'♙', '.':'·'}
+    uni_pieces = {'R':'R', 'N':'N', 'B':'B', 'Q':'Q', 'K':'K', 'P':'P',
+                  'r':'r', 'n':'n', 'b':'b', 'q':'q', 'k':'k', 'p':'p', '.':'·'}
     for i, row in enumerate(pos.board.split()):
         print(' ', 8-i, ' '.join(uni_pieces.get(p, p) for p in row))
     print('    a b c d e f g h \n\n')
 
+def goto(linenum):
+    global line
+    line = linenum
 
 def main():
     pos = Position(initial, 0, (True,True), (True,True), 0, 0)
     searcher = Searcher()
+    board = chess.Board()
+
     while True:
         print_pos(pos)
+        temp = ""
+        temp = str(board.legal_moves)
+        temp = temp[temp.find("(") + 1:temp.find(")")]
+        print(temp)
+        mylist = temp.split(",")
+        print("---- From Chess Board ---")
+        print(board)
+        print("---- From Chess Board ---")
 
+        xmove = mylist[random.randrange(0,mylist.__len__() - 1)]
+        print("The move is : " + xmove)
         if pos.score <= -MATE_LOWER:
             print("You lost")
             break
 
         # We query the user until she enters a (pseudo) legal move.
         move = None
+
         while move not in pos.gen_moves():
-            match = re.match('([a-h][1-8])'*2, input('Your move: '))
+            try:
+                match = re.match('([a-h][1-8])'*2, str(board.push_san(str(xmove).strip()).uci()).strip(" "))
+            except ValueError:
+                break
             if match:
-                move = parse(match.group(1)), parse(match.group(2))
+                try:
+                    move = parse(match.group(1)), parse(match.group(2))
+                except ValueError:
+                    print("Encounter Error")
+                    board.pop()
             else:
                 # Inform the user when invalid input (e.g. "help") is entered
                 print("Please enter a move like g8f6")
