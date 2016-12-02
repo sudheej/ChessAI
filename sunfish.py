@@ -447,9 +447,31 @@ def print_pos(pos):
         print(' ', 8-i, ' '.join(uni_pieces.get(p, p) for p in row))
     print('    a b c d e f g h \n\n')
 
-def goto(linenum):
-    global line
-    line = linenum
+def boardAI(board):
+    while True:
+        try:
+            if board.is_checkmate() is False:
+                temp = str(board.legal_moves)
+                temp = temp[temp.find("(") + 1:temp.find(")")]
+                mylist = temp.split(",")
+                xmove = mylist[random.randrange(0, mylist.__len__() - 1)]
+                returnmove = board.push_san(str(xmove).strip()).uci()
+                mylist.clear()
+                break
+            else:
+                print("It is a check mate")
+                exit(0)
+        except ValueError:
+            if board.is_checkmate():
+                print("Thats a check mate game over")
+                exit(0)
+            break
+
+
+
+    return returnmove
+
+
 
 def main():
     pos = Position(initial, 0, (True,True), (True,True), 0, 0)
@@ -459,16 +481,7 @@ def main():
     while True:
         print_pos(pos)
         temp = ""
-        temp = str(board.legal_moves)
-        temp = temp[temp.find("(") + 1:temp.find(")")]
-        print(temp)
-        mylist = temp.split(",")
-        print("---- From Chess Board ---")
-        print(board)
-        print("---- From Chess Board ---")
-
-        xmove = mylist[random.randrange(0,mylist.__len__() - 1)]
-        print("The move is : " + xmove)
+        rmove = boardAI(board)
         if pos.score <= -MATE_LOWER:
             print("You lost")
             break
@@ -477,10 +490,7 @@ def main():
         move = None
 
         while move not in pos.gen_moves():
-            try:
-                match = re.match('([a-h][1-8])'*2, str(board.push_san(str(xmove).strip()).uci()).strip(" "))
-            except ValueError:
-                break
+            match = re.match('([a-h][1-8])'*2, rmove)
             if match:
                 try:
                     move = parse(match.group(1)), parse(match.group(2))
@@ -510,6 +520,7 @@ def main():
         # 'back rotate' the move before printing it.
         print("My move:", render(119-move[0]) + render(119-move[1]))
         pos = pos.move(move)
+        board.push(chess.Move.from_uci(render(119-move[0]) + render(119-move[1])))
 
 
 if __name__ == '__main__':
