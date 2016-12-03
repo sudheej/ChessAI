@@ -474,14 +474,26 @@ def boardAI(board):
 
 
 def main():
+    try:
+        file = open("data.txt",'a')
+        file.write("\n")
+        boardfile = open("boarddata.txt",'a')
+        boardfile.write("\n")
+    except:
+        print("File creation issue ")
+
+
     pos = Position(initial, 0, (True,True), (True,True), 0, 0)
     searcher = Searcher()
     board = chess.Board()
-
+    print_pos(pos)
     while True:
-        print_pos(pos)
-        temp = ""
-        rmove = boardAI(board)
+        try:
+            rmove = boardAI(board)
+        except UnboundLocalError:
+            print("unbound error")
+            break
+
         if pos.score <= -MATE_LOWER:
             print("You lost")
             break
@@ -518,6 +530,11 @@ def main():
 
         # The black player moves from a rotated position, so we have to
         # 'back rotate' the move before printing it.
+        file.write(rmove + "," + render(119-move[0]) + render(119-move[1]) + ",")
+        boardvalue = str(board)
+        boardfile.writelines("\n")
+        boardfile.write(boardvalue)
+        boardfile.writelines("\n")
         print("My move:", render(119-move[0]) + render(119-move[1]))
         pos = pos.move(move)
         board.push(chess.Move.from_uci(render(119-move[0]) + render(119-move[1])))
